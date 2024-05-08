@@ -29,6 +29,7 @@ public class ResourceResolver {
 
     String basePackage;
 
+    // 基于 . 分隔的包名
     public ResourceResolver(String basePackage) {
         this.basePackage = basePackage;
     }
@@ -69,13 +70,6 @@ public class ResourceResolver {
     }
 
     /**
-     * JAR文件的URI转换为文件系统中的路径
-     */
-    Path jarUriToPath(String path, URI jarUri) throws IOException {
-        return FileSystems.newFileSystem(jarUri, Map.of()).getPath(path);
-    }
-
-    /**
      * 扫描指定路径下的文件，将文件信息转换为指定类型并添加到收集器中。
      */
     <R> void scanFile(boolean isJar, String base, Path root, List<R> collector, Function<Resource, R> mapper) throws IOException {
@@ -96,6 +90,13 @@ public class ResourceResolver {
                 collector.add(r);
             }
         });
+    }
+
+    /**
+     * JAR文件的URI转换为文件系统中的路径
+     */
+    Path jarUriToPath(String path, URI jarUri) throws IOException {
+        return FileSystems.newFileSystem(jarUri, Map.of()).getPath(path);
     }
 
     String removeLeadingSlash(String s) {
@@ -126,105 +127,3 @@ public class ResourceResolver {
         return s;
     }
 }
-
-
-
-//public class ResourceResolver {
-//
-//    Logger logger = LoggerFactory.getLogger(getClass());
-//
-//    String basePackage;
-//
-//    // 基于 . 分隔的包名
-//    public ResourceResolver(String basePackage) {
-//        this.basePackage = basePackage;
-//    }
-//
-//    public <R> List<R> scan(Function<Resource, R> mapper) {
-//        String basePackagePath = this.basePackage.replace(".", "/");
-//        String path = basePackagePath;
-//        try {
-//            List<R> collector = new ArrayList<>();
-//            scan0(basePackagePath, path, collector, mapper);
-//            return collector;
-//        } catch (IOException e) {
-//            throw new UncheckedIOException(e);
-//        } catch (URISyntaxException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    <R> void scan0(String basePackagePath, String path, List<R> collector, Function<Resource, R> mapper) throws IOException, URISyntaxException {
-//        logger.atDebug().log("scan path: {}", path);
-//        Enumeration<URL> en = getContextClassLoader().getResources(path);
-//        while (en.hasMoreElements()) {
-//            URL resourceUrl = en.nextElement();
-//            System.out.println(resourceUrl.toString());
-//        }
-//        while (en.hasMoreElements()) {
-//            URL url = en.nextElement();
-//            URI uri = url.toURI();
-//            String uriStr = removeTrailingSlash(uriToString(uri));
-//            String uriBaseStr = uriStr.substring(0, uriStr.length() - basePackagePath.length());
-//            if (uriBaseStr.startsWith("file:")) {
-//                uriBaseStr = uriBaseStr.substring(5);
-//            }
-//            if (uriStr.startsWith("jar:")) {
-//                scanFile(true, uriBaseStr, jarUriToPath(basePackagePath, uri), collector, mapper);
-//            } else {
-//                scanFile(false, uriBaseStr, Paths.get(uri), collector, mapper);
-//            }
-//        }
-//    }
-//
-//    ClassLoader getContextClassLoader() {
-//        ClassLoader cl = null;
-//        cl = Thread.currentThread().getContextClassLoader();
-//        if (cl == null) {
-//            cl = getClass().getClassLoader();
-//        }
-//        return cl;
-//    }
-//
-//    Path jarUriToPath(String basePackagePath, URI jarUri) throws IOException {
-//        return FileSystems.newFileSystem(jarUri, Map.of()).getPath(basePackagePath);
-//    }
-//
-//    <R> void scanFile(boolean isJar, String base, Path root, List<R> collector, Function<Resource, R> mapper) throws IOException {
-//        String baseDir = removeTrailingSlash(base);
-//        Files.walk(root).filter(Files::isRegularFile).forEach(file -> {
-//            Resource res = null;
-//            if (isJar) {
-//                res = new Resource(baseDir, removeLeadingSlash(file.toString()));
-//            } else {
-//                String path = file.toString();
-//                String name = removeLeadingSlash(path.substring(baseDir.length()));
-//                res = new Resource("file:" + path, name);
-//            }
-//            logger.atDebug().log("found resource: {}", res);
-//            R r = mapper.apply(res);
-//            if (r != null) {
-//                collector.add(r);
-//            }
-//        });
-//    }
-//
-//    String uriToString(URI uri) {
-//        return URLDecoder.decode(uri.toString(), StandardCharsets.UTF_8);
-//    }
-//
-//    String removeLeadingSlash(String s) {
-//        if (s.startsWith("/") || s.startsWith("\\")) {
-//            s = s.substring(1);
-//        }
-//        return s;
-//    }
-//
-//    String removeTrailingSlash(String s) {
-//        if (s.endsWith("/") || s.endsWith("\\")) {
-//            s = s.substring(0, s.length() - 1);
-//        }
-//        return s;
-//    }
-//}
-//
