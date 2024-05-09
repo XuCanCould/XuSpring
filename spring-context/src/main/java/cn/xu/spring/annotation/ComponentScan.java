@@ -10,6 +10,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface ComponentScan {
     // 用于包扫描的名称，默认当前包
-    String value() default "";
+    String[] value() default {};
 
 }

@@ -180,8 +180,9 @@ public class AnnotationConfigApplicationContext {
      */
     Set<String> scanForClassNames(Class<?> configClass) {
         ComponentScan scan = ClassUtils.findAnnotation(configClass, ComponentScan.class);
-        final String[] scanPackages = scan == null || scan.value().length() == 0 ?
-                new String[] { configClass.getPackage().getName() } : new String[]{scan.value()};
+        // 获取配置包名，没有标注则默认当前包名
+        final String[] scanPackages = scan == null || scan.value().length == 0 ?
+                new String[] { configClass.getPackage().getName() } : scan.value();
         logger.atInfo().log("component scan in packages: {}", Arrays.toString(scanPackages));
 
         Set<String> classNameSet = new HashSet<>();
