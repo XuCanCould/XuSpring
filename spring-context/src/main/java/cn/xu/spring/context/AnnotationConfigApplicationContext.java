@@ -52,9 +52,34 @@ public class AnnotationConfigApplicationContext {
         // 创建其他bean
         createNormalBeans();
 
+        // 通过字段和setter注入
+        this.beans.values().forEach(beanDefinition -> injectBean(beanDefinition));
+
+        // 调用初始化方法
+        this.beans.values().forEach(beanDefinition -> beanInit(beanDefinition));
+
         if (logger.isDebugEnabled()) {
             beans.values().forEach(bd -> logger.debug("bean initialized: {}", bd));
         }
+    }
+
+    /**
+     * 调用 init 方法，这里实际上是调用 beanDefinition 中存储的初始化方法
+     */
+    void beanInit(BeanDefinition beanDefinition) {
+        callMethod(beanDefinition.getInstance(), beanDefinition.getInitMethod(), beanDefinition.getInitMethodName());
+    }
+
+    /**
+     * 注入依赖但不调用初始化方法
+     */
+    void injectBean(BeanDefinition beanDefinition) {
+        try {
+            injectProperties(beanDefinition, beanDefinition.getBeanClass(), beanDefinition.getInstance());
+        } catch (ReflectiveOperationException e) {
+            throw new BeanCreationException(e);
+        }
+
     }
 
     void createNormalBeans() {
@@ -562,5 +587,25 @@ public class AnnotationConfigApplicationContext {
     public <T> List<T> findBeans(Class<T> requiredType) {
         return findBeanDefinitions(requiredType).stream().
                 map(bd -> (T) bd.getRequiredInstance()).collect(Collectors.toList());
+    }
+
+    private void callMethod(Object instance, Method method, String nameMethod) {
+        // 调用初始化方法，这里对应的是 @PostConstruct 标记的
+        if (method != null) {
+            try {
+                method.invoke(instance);
+            } catch (ReflectiveOperationException e) {
+                throw new BeanCreationException(e);
+            }
+        } else if (nameMethod != null) {
+            // 这里是工厂方法
+            Method namedMethod = ClassUtils.getNamedMethod(instance.getClass(), nameMethod);
+            namedMethod.setAccessible(true);
+            try {
+                namedMethod.invoke(instance);
+            } catch (ReflectiveOperationException e) {
+                throw new BeanCreationException(e);
+            }
+        }
     }
 }
