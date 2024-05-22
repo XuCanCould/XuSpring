@@ -21,13 +21,15 @@ import java.util.stream.Collectors;
  */
 
 public class AnnotationConfigApplicationContext {
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final PropertyResolver propertyResolver;
 
     protected final Map<String, BeanDefinition> beans;
 
     private Set<String> creatingBeanNames;
+
+    private List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
 
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
         this.propertyResolver = propertyResolver;
@@ -49,6 +51,14 @@ public class AnnotationConfigApplicationContext {
                 return bd.getName();
             }).collect(Collectors.toList());
 
+        // 创建 BeanPostProcessor 类型的 bean
+        List<BeanPostProcessor> processors = this.beans.values().stream()
+            // 过滤出 BeanPostProcessor 类型的bean
+            .filter(this::isBeanPostProcessorDefinition).sorted().map(bd -> {
+                    return (BeanPostProcessor) createBeanAsEarlySingleton(bd);
+            }).collect(Collectors.toList());
+        this.beanPostProcessors.addAll(processors);
+
         // 创建其他bean
         createNormalBeans();
 
@@ -56,26 +66,43 @@ public class AnnotationConfigApplicationContext {
         this.beans.values().forEach(beanDefinition -> injectBean(beanDefinition));
 
         // 调用初始化方法
-        this.beans.values().forEach(beanDefinition -> beanInit(beanDefinition));
+        this.beans.values().forEach(beanDefinition -> initBean(beanDefinition));
 
         if (logger.isDebugEnabled()) {
-            beans.values().forEach(bd -> logger.debug("bean initialized: {}", bd));
+            this.beans.values().stream().sorted().forEach(bd -> logger.debug("bean initialized: {}", bd));
         }
     }
 
     /**
      * 调用 init 方法，这里实际上是调用 beanDefinition 中存储的初始化方法
      */
-    void beanInit(BeanDefinition beanDefinition) {
-        callMethod(beanDefinition.getInstance(), beanDefinition.getInitMethod(), beanDefinition.getInitMethodName());
+    void initBean(BeanDefinition beanDefinition) {
+        // 获取bean示例，或者被代理的原始实例：
+        final Object beanInstance = getProxiedInstance(beanDefinition);
+
+        callMethod(beanInstance, beanDefinition.getInitMethod(), beanDefinition.getInitMethodName());
+
+        // 调用 BeanPostProcessor.postProcessAfterInitialization()
+        beanPostProcessors.forEach(bp -> {
+//                                                                                  beanInstance
+//            Object processedInstance = bp.postProcessAfterInitialization(beanDefinition.getInstance(), beanDefinition.getName());
+            Object processedInstance = bp.postProcessAfterInitialization(beanDefinition.getInstance(), beanDefinition.getName());
+            if (processedInstance != beanDefinition.getInstance()) {
+                logger.atDebug().log("BeanPostProcessor {} return different bean from {} to {}.", bp.getClass().getSimpleName(),
+                        beanDefinition.getInstance().getClass().getName(), processedInstance.getClass().getName());
+                beanDefinition.setInstance(processedInstance);
+            }
+        });
     }
 
     /**
      * 注入依赖但不调用初始化方法
      */
     void injectBean(BeanDefinition beanDefinition) {
+        // 注入到被代理的原始实例中
+        Object instance = getProxiedInstance(beanDefinition);
         try {
-            injectProperties(beanDefinition, beanDefinition.getBeanClass(), beanDefinition.getInstance());
+            injectProperties(beanDefinition, beanDefinition.getBeanClass(), instance);
         } catch (ReflectiveOperationException e) {
             throw new BeanCreationException(e);
         }
@@ -134,6 +161,9 @@ public class AnnotationConfigApplicationContext {
 
                 Configuration configuration = ClassUtils.findAnnotation(clazz, Configuration.class);
                 if (configuration != null) {
+                    if (BeanPostProcessor.class.isAssignableFrom(clazz)) {
+                        throw new BeanDefinitionException("@Configuration class '" + clazz.getName() + "' cannot be BeanPostProcessor.");
+                    }
                     scanFactoryMethods(beanName, clazz, defs);
                 }
             }
@@ -272,10 +302,6 @@ public class AnnotationConfigApplicationContext {
         return classNameSet;
     }
 
-    boolean isConfigurationDefinition(Class<?> clazz) {
-        return ClassUtils.findAnnotation(clazz, Configuration.class) != null;
-    }
-
     /**
      * 根据 name 查找 BeanDefinition
      */
@@ -372,6 +398,13 @@ public class AnnotationConfigApplicationContext {
                         definition.getName(), definition.getBeanClass().getName()));
             }
 
+            // BeanPostProcessor 不允许由@Autowired创建，不能依赖其他bean
+            final boolean isBeanPostProcessor = isBeanPostProcessorDefinition(definition);
+            if (isBeanPostProcessor && autowired!= null) {
+                throw new BeanCreationException(String.format("Cannot specify @Autowired when create BeanPostProcessor '%s': %s.",
+                        definition.getName(), definition.getBeanClass().getName()));
+            }
+
             // 对注解 @Value、@Autowired 的要求
             if (value == null && autowired == null) {
                 String.format("Must specify @Autowired or @Value when create bean '%s': %s.", definition.getName(), definition.getBeanClass().getName());
@@ -395,7 +428,7 @@ public class AnnotationConfigApplicationContext {
                 }
                 if (dependsOnDef != null) {
                     Object autowiredBeanInstance = dependsOnDef.getInstance();
-                    if (autowiredBeanInstance == null) {
+                    if (autowiredBeanInstance == null && !isConfiguration && !isBeanPostProcessor) {
                         // 还没有被初始化，则 createBeanAsEarlySingleton 创建
                         autowiredBeanInstance = createBeanAsEarlySingleton(dependsOnDef);
                     }
@@ -416,7 +449,7 @@ public class AnnotationConfigApplicationContext {
                 throw new BeanCreationException(String.format("Exception when create bean '%s': %s", definition.getName(), definition.getBeanClass().getName()), e);
             }
         } else {
-            // 工厂方法
+            // 用@Bean的方式创建：
             Object configInstance = getBean(definition.getFactoryName());
             try {
                 instance = definition.getFactoryMethod().invoke(configInstance, args);
@@ -426,6 +459,20 @@ public class AnnotationConfigApplicationContext {
         }
 
         definition.setInstance(instance);
+
+        // BeanPostProcessor 处理 bean
+        for (BeanPostProcessor processor : beanPostProcessors) {
+            Object processed = processor.postProcessBeforeInitialization(definition.getInstance(), definition.getName());
+            if (processed == null) {
+                throw new BeanCreationException(String.format("PostBeanProcessor returns null when process bean '%s' by %s", definition.getName(), processor));
+            }
+            // 如果 BeanPostProcessor 使用代理对象替换了原始的bean，那么需要更新引用
+            if (definition.getInstance() != processed) {
+                logger.atDebug().log("Bean '{}' was replaced by post processor {}.", definition.getName(), processor.getClass().getName());
+                definition.setInstance(processed);
+            }
+        }
+
         return definition.getInstance();
     }
 
@@ -536,7 +583,7 @@ public class AnnotationConfigApplicationContext {
         if (beanDefinition == null) {
             throw new BeanDefinitionException(String.format("No bean defined with name '%s'.", name));
         }
-        return (T) beanDefinition.getInstance();
+        return (T) beanDefinition.getRequiredInstance();
     }
 
     /**
@@ -607,5 +654,30 @@ public class AnnotationConfigApplicationContext {
                 throw new BeanCreationException(e);
             }
         }
+    }
+
+    boolean isBeanPostProcessorDefinition(BeanDefinition def) {
+        return BeanPostProcessor.class.isAssignableFrom(def.getBeanClass());
+    }
+
+    /**
+     * 获取原始的bean
+     * @param def
+     * @return
+     */
+    Object getProxiedInstance(BeanDefinition def) {
+        Object beanInstance = def.getInstance();
+        // 如果代理改变了原始bean，有希望向原始bean注入属性：
+        ArrayList<BeanPostProcessor> reversedBeanPostProcessors = new ArrayList<>(this.beanPostProcessors);
+        Collections.reverse(reversedBeanPostProcessors);
+        for (BeanPostProcessor revered : reversedBeanPostProcessors) {
+            Object restoredInstance = revered.postProcessOnSetProperty(beanInstance, def.getName());
+            if (restoredInstance != beanInstance) {
+                logger.atDebug().log("BeanPostProcessor {} specified injection from {} to {}.", revered.getClass().getSimpleName(),
+                        beanInstance.getClass().getSimpleName(), restoredInstance.getClass().getSimpleName());
+                beanInstance = restoredInstance;
+            }
+        }
+        return beanInstance;
     }
 }
