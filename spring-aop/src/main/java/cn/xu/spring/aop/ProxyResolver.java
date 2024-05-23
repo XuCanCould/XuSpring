@@ -17,13 +17,25 @@ import net.bytebuddy.matcher.ElementMatchers;
  *
  */
 public class ProxyResolver {
-    Logger logger = LoggerFactory.getLogger(ProxyResolver.class);
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     final ByteBuddy byteBuddy = new ByteBuddy();
+
+    private static ProxyResolver INSTANCE = null;
+
+    public static ProxyResolver getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new ProxyResolver();
+        }
+        return INSTANCE;
+    }
+
+    private ProxyResolver() {}
 
     @SuppressWarnings("unchecked")
     public <T> T createProxy(T bean, InvocationHandler handler) {
         Class<?> targetClass = bean.getClass();
+        logger.atDebug().log("create proxy for bean {} @{}", targetClass.getName(), Integer.toHexString(bean.hashCode()));
         // 动态创建代理类
         Class<?> proxyClass = this.byteBuddy
                 // 这个代理类是 targetClass 的子类，子类使用默认的构造方法
