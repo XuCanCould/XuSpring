@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * created by Xu on 2024/5/6 20:50.
  */
 
-public class AnnotationConfigApplicationContext {
+public class AnnotationConfigApplicationContext implements ConfigurableApplicationContext {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final PropertyResolver propertyResolver;
@@ -32,6 +32,7 @@ public class AnnotationConfigApplicationContext {
     private List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
 
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
+        ApplicationUtils.setApplicationContext(this);
         this.propertyResolver = propertyResolver;
 
         // 获取所有Bean的Class类型
@@ -679,5 +680,40 @@ public class AnnotationConfigApplicationContext {
             }
         }
         return beanInstance;
+    }
+
+    /**
+     * 通过type查找bean
+     * @param requiredType
+     * @return
+     * @param <T>
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getBeans(Class<T> requiredType) {
+        List<BeanDefinition> beanDefinitions = findBeanDefinitions(requiredType);
+        if (beanDefinitions.isEmpty()) {
+            return List.of();
+        }
+        ArrayList<T> list = new ArrayList<>(beanDefinitions.size());
+        for (BeanDefinition def : beanDefinitions) {
+            list.add((T) def.getRequiredInstance());
+        }
+        return list;
+    }
+
+    /**
+     * 销毁方法，处理bean时还需要注意被代理的原对象。
+     */
+    @Override
+    public void close() {
+        logger.info("Closing {}...", this.getClass().getName());
+        this.beans.values().forEach(def -> {
+            final Object instance = getProxiedInstance(def);
+            callMethod(instance, def.getDestroyMethod(), def.getDestroyMethodName());
+        });
+        this.beans.clear();
+        logger.info("{} closed.", this.getClass().getName());
+        ApplicationUtils.setApplicationContext(null);
     }
 }
