@@ -32,7 +32,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     private List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
 
     public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
-        ApplicationUtils.setApplicationContext(this);
+        ApplicationContextUtils.setApplicationContext(this);
         this.propertyResolver = propertyResolver;
 
         // 获取所有Bean的Class类型
@@ -78,15 +78,13 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
      * 调用 init 方法，这里实际上是调用 beanDefinition 中存储的初始化方法
      */
     void initBean(BeanDefinition beanDefinition) {
-        // 获取bean示例，或者被代理的原始实例：
+        // 获取bean实例，即被处理前的原始实例：
         final Object beanInstance = getProxiedInstance(beanDefinition);
 
         callMethod(beanInstance, beanDefinition.getInitMethod(), beanDefinition.getInitMethodName());
 
         // 调用 BeanPostProcessor.postProcessAfterInitialization()
         beanPostProcessors.forEach(bp -> {
-//                                                                                  beanInstance
-//            Object processedInstance = bp.postProcessAfterInitialization(beanDefinition.getInstance(), beanDefinition.getName());
             Object processedInstance = bp.postProcessAfterInitialization(beanDefinition.getInstance(), beanDefinition.getName());
             if (processedInstance != beanDefinition.getInstance()) {
                 logger.atDebug().log("BeanPostProcessor {} return different bean from {} to {}.", bp.getClass().getSimpleName(),
@@ -714,6 +712,6 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         });
         this.beans.clear();
         logger.info("{} closed.", this.getClass().getName());
-        ApplicationUtils.setApplicationContext(null);
+        ApplicationContextUtils.setApplicationContext(null);
     }
 }

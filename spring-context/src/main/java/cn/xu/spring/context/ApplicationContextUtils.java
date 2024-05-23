@@ -9,11 +9,11 @@ import java.util.Objects;
  * created by Xu on 2024/5/23 9:45.
  * 获取到applicationContext实例
  */
-public class ApplicationUtils {
+public class ApplicationContextUtils {
 
     private static ApplicationContext applicationContext;
 
-    private ApplicationUtils() {}
+    private ApplicationContextUtils() {}
 
     @Nonnull
     public static ApplicationContext getRequiredApplicationContext() {
@@ -26,6 +26,6 @@ public class ApplicationUtils {
     }
 
     static void setApplicationContext(ApplicationContext applicationContext) {
-        ApplicationUtils.applicationContext = applicationContext;
+        ApplicationContextUtils.applicationContext = applicationContext;
     }
 }
