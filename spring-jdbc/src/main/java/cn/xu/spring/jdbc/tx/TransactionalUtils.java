@@ -1,6 +1,5 @@
 package cn.xu.spring.jdbc.tx;
 
-import cn.xu.spring.jdbc.JdbcTemplate;
 import jakarta.annotation.Nullable;
 
 import java.sql.Connection;
@@ -15,7 +14,7 @@ public class TransactionalUtils {
      * 获取当前事务的连接
      */
     @Nullable
-    public static Connection getConnection() {
+    public static Connection getCurrentConnection() {
         TransactionStatus ts = DataSourceTransactionManager.transactionStatus.get();
         return ts == null ? null : ts.connection;
     }
