@@ -24,22 +24,14 @@ public class JdbcTemplate {
 
     @SuppressWarnings("unchecked")
     public <T> T queryForObject(String sql, Class<T> clazz, Object ... args) {
-//        if (clazz == String.class) {
-//            return (T) queryForObject(sql, StringRowMapper.instance, args);
-//        }
-//        if (clazz == boolean.class) {
-//            return (T) queryForObject(sql, BooleanRowMapper.instance, args);
-//        }
-//        if (clazz == Number.class) {
-//            return (T) queryForObject(sql, NumberRowMapper.instance, args);
-//        }
-//        return queryForObject(sql, new BeanRowMapper<>(clazz), args);
         if (clazz == String.class) {
             return (T) queryForObject(sql, StringRowMapper.instance, args);
         }
         if (clazz == Boolean.class || clazz == boolean.class) {
             return (T) queryForObject(sql, BooleanRowMapper.instance, args);
         }
+        // isPrimitive处理了Java的基本数据类型（如int, double等）。基本类型中的boolean和char已经被前面处理
+        // 基本数据类型的包装类（如Integer, Double）继承自Number，进而确保了所有数字类型
         if (Number.class.isAssignableFrom(clazz) || clazz.isPrimitive()) {
             return (T) queryForObject(sql, NumberRowMapper.instance, args);
         }
