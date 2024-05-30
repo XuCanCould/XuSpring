@@ -9,6 +9,8 @@ import cn.xu.spring.exception.ServerErrorException;
 import cn.xu.spring.exception.ServerWebInputException;
 import cn.xu.spring.io.PropertyResolver;
 import cn.xu.spring.utils.ClassUtils;
+import cn.xu.spring.web.utils.JsonUtils;
+import cn.xu.spring.web.utils.PathUtils;
 import cn.xu.spring.web.utils.WebUtils;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServlet;
@@ -18,14 +20,18 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -128,7 +134,7 @@ public class DispatcherServlet extends HttpServlet {
         if (url.equals(this.faviconPath) || url.equals(this.resourcePath)) {
             doResource(url, req, resp);
         } else {
-            doService(url, req, resp, this.getDispatchers);
+            doService(req, resp, this.getDispatchers);
         }
     }
 
@@ -137,7 +143,9 @@ public class DispatcherServlet extends HttpServlet {
         doService(req, resp, this.postDispatchers);
     }
 
-
+    /**
+     * 参数和异常处理
+     */
     void doService(HttpServletRequest req, HttpServletResponse resp, List<Dispatcher> dispatchers) throws ServletException, IOException {
         String url = req.getRequestURI();
         try {
@@ -159,13 +167,81 @@ public class DispatcherServlet extends HttpServlet {
 
     }
 
-    void doService(String url, HttpServletRequest req, HttpServletResponse resp, List<Dispatcher> dispatchers) throws ServletException, IOException {
+    /**
+     * 通过 dispatcher.process() 处理请求，重点是处理返回值
+     */
+    void doService(String url, HttpServletRequest req, HttpServletResponse resp, List<Dispatcher> dispatchers) throws Exception {
         for (Dispatcher dispatcher : dispatchers) {
             Result result = dispatcher.process(url, req, resp);
+            if (result.processed()) {
+                Object r = result.returnObject();
 
+                if (dispatcher.isRest) {
+                    // 调度器为REST类型，返回值直接写入HTTP响应体或抛出异常。
+                    if (!resp.isCommitted()) {
+                        resp.setContentType("application/json");
+                    }
+                    if (dispatcher.isResponseBody) {
+                        // 处理 String 和 byte[] 类型
+                        if (r instanceof String s) {
+                            PrintWriter pw = resp.getWriter();
+                            pw.write(s);
+                            pw.flush();
+                        } else if (r instanceof byte[] data) {
+                            ServletOutputStream outputStream = resp.getOutputStream();
+                            outputStream.write(data);
+                            outputStream.flush();
+                        } else {
+                            throw new ServletException("Unable to process REST result when handle url: " + url);
+                        }
+                    } else if (!dispatcher.isVoid) {
+                        PrintWriter writer = resp.getWriter();
+                        JsonUtils.writeJson(writer, r);
+                        writer.flush();
+                    }
+                } else {
+                    // 调度器为MVC类型，处理服务器端请求并返回响应视图
+                    if (!resp.isCommitted()) {
+                        resp.setContentType("text/html");
+                    }
+                    // 处理String、byte[]和 ModelAndView
+                    if (r instanceof String s) {
+                        // 写入响应 or 页面跳转
+                        if (dispatcher.isResponseBody) {
+                            PrintWriter pw = resp.getWriter();
+                            pw.write(s);
+                            pw.flush();
+                        } else if (s.startsWith("redirect:")) {
+                            resp.sendRedirect(s.substring(9));
+                        } else {
+                            // error:
+                            throw new ServletException("Unable to process String result when handle url: " + url);
+                        }
+                    } else if (r instanceof byte[] data) {
+                        if (dispatcher.isResponseBody) {
+                            ServletOutputStream outputStream = resp.getOutputStream();
+                            outputStream.write(data);
+                            outputStream.flush();
+                        } else {
+                            throw new ServletException("Unable to process byte[] result when handle url: " + url);
+                        }
+                    } else if (r instanceof ModelAndView mv) {
+                        String viewName = mv.getViewName();
+                        // 跳转到其他视图或者渲染
+                        if (viewName.startsWith("redirect:")) {
+                            resp.sendRedirect(viewName.substring(9));
+                        } else {
+                            this.viewResolver.render(viewName, mv.getModel(), req, resp);
+                        }
+                    } else if (!dispatcher.isVoid && r != null) {
+                        throw new ServletException("Unable to process " + r.getClass().getName() + " result when handle url: " + url);
+                    }
+                }
+                // 特别重要的返回，到这里请求已经处理完了
+                return;
+            }
         }
-
-
+        resp.sendError(404, "Not Found");
     }
 
     protected void doResource(String url, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -209,7 +285,7 @@ public class DispatcherServlet extends HttpServlet {
             this.isRest = isRest;
             this.isResponseBody = method.isAnnotationPresent(ResponseBody.class);
             this.isVoid = method.getReturnType() == void.class;
-            this.urlPattern = Pattern.compile(urlPattern);
+            this.urlPattern = PathUtils.compile(urlPattern);
             this.controller = controller;
             this.handlerMethod = method;
             Parameter[] params = method.getParameters();
@@ -226,9 +302,68 @@ public class DispatcherServlet extends HttpServlet {
             }
         }
 
-        Result process(String url, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            // todo
-            return null;
+        /**
+         * 处理http请求。
+         * 根据给定的URL模式匹配请求，并根据匹配结果提取相应的参数，然后调用对应的方法处理请求，并返回处理结果
+         */
+        Result process(String url, HttpServletRequest req, HttpServletResponse resp) throws Exception {
+            Matcher matcher = urlPattern.matcher(url);
+            if (matcher.matches()) {
+                Object[] arguments = new Object[methodParameters.length];
+                for (int i = 0; i < arguments.length; i++) {
+                    Param param = methodParameters[i];
+                    arguments[i] = switch (param.paramType) {
+                        case PATH_VARIABLE -> {
+                            try {
+                                String s = matcher.group(param.name);
+                                yield convertToType(param.classType, s);
+                            } catch (IllegalArgumentException e) {
+                                throw new ServerWebInputException("Path variable '" + param.name + "' not found.");
+                            }
+                        }
+                        case REQUEST_BODY -> {
+                            // 从请求的正文部分读取JSON数据
+                            BufferedReader reader = req.getReader();
+                            yield JsonUtils.readJson(reader, param.classType);
+                        }
+                        case REQUEST_PARAM -> {
+                            // 得到请求参数为空时返回默认值，然后转换为制定的参数类型
+                            String s = getOrDefault(req, param.name, param.defaultValue);
+                            yield convertToType(param.classType, s);
+                        }
+                        case SERVLET_VARIABLE -> {
+                            // 获取相应的HTTP请求、响应、会话或ServletContext对象
+                            Class<?> classType = param.classType;
+                            if (classType == HttpServletRequest.class) {
+                                yield req;
+                            } else if (classType == HttpServletResponse.class) {
+                                yield resp;
+                            } else if (classType == HttpSession.class) {
+                                yield req.getSession();
+                            } else if (classType == ServletContext.class) {
+                                yield req.getServletContext();
+                            } else {
+                                throw new ServerErrorException("Could not determine argument type: " + classType);
+                            }
+                        }
+                    };
+                }
+                Object result = null;
+                try {
+                    result = this.handlerMethod.invoke(this.controller, arguments);
+                } catch (InvocationTargetException e) {
+                    // 可能是业务逻辑中抛出的具体异常类型&&调用栈中保留了原始异常信息
+                    Throwable cause = e.getCause();
+                    if (cause instanceof Exception ex) {
+                        throw ex;
+                    }
+                    throw e;
+                } catch (ReflectiveOperationException e) {
+                    throw new ServerErrorException(e);
+                }
+                return new Result(true, result);
+            }
+            return NOT_PROCESSED;
         }
 
         Object convertToType(Class<?> classType, String s) {
@@ -255,7 +390,7 @@ public class DispatcherServlet extends HttpServlet {
 
         String getOrDefault(HttpServletRequest request, String name, String defaultValue) {
             String s = request.getParameter(name);
-            if (s != null) {
+            if (s == null) {
                 if (WebUtils.DEFAULT_PARAM_VALUE.equals(defaultValue)) {
                     throw new ServerWebInputException("Request parameter '" + name + "' not found.");
                 }
@@ -291,6 +426,7 @@ public class DispatcherServlet extends HttpServlet {
                 this.paramType = ParamType.PATH_VARIABLE;
             } else if (rp != null) {
                 this.name = rp.value();
+                this.defaultValue = rp.defaultValue();
                 this.paramType = ParamType.REQUEST_PARAM;
             } else if (rb != null) {
                 this.paramType = ParamType.REQUEST_BODY;
@@ -311,5 +447,5 @@ public class DispatcherServlet extends HttpServlet {
 
     }
 
-    static record Result(boolean processed, Object result) {}
+    static record Result(boolean processed, Object returnObject) {}
 }

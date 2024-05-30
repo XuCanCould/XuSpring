@@ -1,14 +1,12 @@
 package cn.xu.spring.web;
 
 import cn.xu.spring.exception.ServerErrorException;
-import cn.xu.spring.web.utils.WebUtils;
 import freemarker.cache.TemplateLoader;
 import freemarker.core.HTMLOutputFormat;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import freemarker.template.Configuration;
@@ -41,7 +39,8 @@ public class FreeMarkerViewResolver implements ViewResolver {
 
     @Override
     public void init() {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_0);
+        logger.info("init {}, set template path: {}", getClass().getSimpleName(), this.templatePath);
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
         cfg.setOutputFormat(HTMLOutputFormat.INSTANCE);
         cfg.setDefaultEncoding(this.templateEncoding);
         cfg.setTemplateLoader(new ServletTemplateLoader(this.servletContext, this.templatePath));
@@ -62,7 +61,7 @@ public class FreeMarkerViewResolver implements ViewResolver {
     public void render(String viewName, Map<String, Object> module, HttpServletRequest request, HttpServletResponse response) throws IOException {
         Template template = null;
         try {
-            template = config.getTemplate(viewName);
+            template = this.config.getTemplate(viewName);
         } catch (Exception e) {
             throw new ServerErrorException("View not found: " + viewName);
         }

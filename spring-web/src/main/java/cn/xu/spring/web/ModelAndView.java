@@ -31,6 +31,10 @@ public class ModelAndView {
         this(viewName, status, null);
     }
 
+    public ModelAndView(String viewName, String modelName, Object modelObject) {
+        this(viewName, HttpServletResponse.SC_OK, null);
+        addModel(modelName, modelObject);
+    }
 
     public ModelAndView(String viewName, int status, @Nullable Map<String, Object> model) {
         this.view = viewName;
@@ -42,9 +46,9 @@ public class ModelAndView {
 
     public void addModel(Map<String, Object> model) {
         if (this.model == null) {
-            model = new HashMap<>();
+            this.model = new HashMap<>();
         }
-        model.putAll(model);
+        this.model.putAll(model);
     }
 
     public void addModel(String name, Object value) {
