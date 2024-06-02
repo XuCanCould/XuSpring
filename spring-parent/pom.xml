@@ -3,15 +3,34 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cn.xu.spring</groupId>
   <artifactId>spring-parent</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.0</version>
     <packaging>pom</packaging>
 
-    <name>Xu Spring Framework</name>
+  <name>Xu Spring Framework</name>
   <description>Mini Spring Framework</description>
   <url>http://maven.apache.org</url>
-    <modules>
-        <module>../spring-aop</module>
-    </modules>
+
+  <scm>
+    <url>https://github.com/XuCanCould/xuSpring.git</url>
+    <connection>scm:git:git@github.com:XuCanCould/xuSpring.git</connection>
+    <developerConnection>scm:git:git@github.com:XuCanCould/xuSpring.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>XuCanCould</name>
+      <email>xucan@st.huas.edu.cn</email>
+      <organization>PixbitStudio</organization>
+      <organizationUrl></organizationUrl>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License v3.0</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
 
     <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -212,18 +231,18 @@
     </plugins>
   </build>
 
-  <!--  &lt;!&ndash; 项目构建产物的发布位置 &ndash;&gt;-->
-  <!--  <distributionManagement>-->
-  <!--    &lt;!&ndash; maven 快照存储仓库 &ndash;&gt;-->
-  <!--    <snapshotRepository>-->
-  <!--      <id>ossrh</id>-->
-  <!--      <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-  <!--    </snapshotRepository>-->
-  <!--    &lt;!&ndash; 正式发布版本的存储仓库 &ndash;&gt;-->
-  <!--    <repository>-->
-  <!--      <id>ossrh</id>-->
-  <!--      <name>Nexus Release Repository</name>-->
-  <!--      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-  <!--    </repository>-->
-  <!--  </distributionManagement>-->
+    <!-- 项目构建产物的发布位置 -->
+    <distributionManagement>
+      <!-- maven 快照存储仓库 -->
+<!--      <snapshotRepository>-->
+<!--        <id>ossrh</id>-->
+<!--        <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+<!--      </snapshotRepository>-->
+      <!-- 正式发布版本的存储仓库 -->
+      <repository>
+        <id>ossrh</id>
+        <name>Nexus Release Repository</name>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
 </project>
