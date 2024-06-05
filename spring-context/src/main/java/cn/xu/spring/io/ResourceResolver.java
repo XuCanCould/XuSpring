@@ -10,10 +10,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -96,7 +93,14 @@ public class ResourceResolver {
      * JAR文件的URI转换为文件系统中的路径
      */
     Path jarUriToPath(String path, URI jarUri) throws IOException {
-        return FileSystems.newFileSystem(jarUri, Map.of()).getPath(path);
+//        return FileSystems.newFileSystem(jarUri, Map.of()).getPath(path);
+        try {
+            // Try to get the existing file system for the URI
+            return FileSystems.getFileSystem(jarUri).getPath(path);
+        } catch (FileSystemNotFoundException ex) {
+            // If no file system exists for the URI, create a new one
+            return FileSystems.newFileSystem(jarUri, Map.of()).getPath(path);
+        }
     }
 
     String removeLeadingSlash(String s) {
