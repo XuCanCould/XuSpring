@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>cn.xu.spring</groupId>
+  <groupId>io.github.xucancould</groupId>
   <artifactId>spring-parent</artifactId>
   <version>1.0.0</version>
     <packaging>pom</packaging>
@@ -11,7 +11,7 @@
   <url>http://maven.apache.org</url>
 
   <scm>
-    <url>https://github.com/XuCanCould/xuSpring.git</url>
+    <url>https://github.com/XuCanCould/xuSpring/tree/main</url>
     <connection>scm:git:git@github.com:XuCanCould/xuSpring.git</connection>
     <developerConnection>scm:git:git@github.com:XuCanCould/xuSpring.git</developerConnection>
   </scm>
@@ -134,115 +134,34 @@
     </dependencies>
   </dependencyManagement>
 
+  <distributionManagement>
+    <repository>
+      <id>local-repo-release</id>
+      <name>GitHub Release</name>
+      <url>file://E:/workspace\XuSpring/maven-repo/</url>
+    </repository>
+  </distributionManagement>
+
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>3.2.1</version>
-          <executions>
-            <execution>
-              <id>attach-sources</id>
-              <goals>
-                <goal>jar-no-fork</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.4.1</version>
-          <executions>
-            <execution>
-              <id>attach-javadocs</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-              <configuration>
-                <doclint>none</doclint>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>3.0.1</version>
-          <executions>
-            <execution>
-              <id>sign-artifacts</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>sign</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.12</version>
-          <extensions>true</extensions>
-          <configuration>
-            <serverId>ossrh</serverId>
-            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
+        <groupId>org.apache.maven.plugins</groupId> <!-- 添加 groupId -->
         <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version> <!-- 推荐指定插件版本 -->
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+            <configuration>
+              <classifier>sources</classifier> <!-- 指定 classifier -->
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-      </plugin>
+      <!-- 其他插件配置可以放在这里 -->
     </plugins>
   </build>
-
-    <!-- 项目构建产物的发布位置 -->
-    <distributionManagement>
-      <!-- maven 快照存储仓库 -->
-<!--      <snapshotRepository>-->
-<!--        <id>ossrh</id>-->
-<!--        <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-<!--      </snapshotRepository>-->
-      <!-- 正式发布版本的存储仓库 -->
-      <repository>
-        <id>ossrh</id>
-        <name>Nexus Release Repository</name>
-        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
-    </distributionManagement>
 </project>
