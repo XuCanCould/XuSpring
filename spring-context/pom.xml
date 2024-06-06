@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cn.xu.spring</groupId>
+        <groupId>io.github.xucancould</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.0</version>
         <relativePath>../spring-parent/pom.xml</relativePath>
     </parent>
 

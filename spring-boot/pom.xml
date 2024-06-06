@@ -2,24 +2,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cn.xu.spring</groupId>
+        <groupId>io.github.xucancould</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.0</version>
         <relativePath>../spring-parent/pom.xml</relativePath>
     </parent>
     <artifactId>spring-boot</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>cn.xu.spring</groupId>
+            <groupId>io.github.xucancould</groupId>
             <artifactId>spring-web</artifactId>
-            <version>1.0.6</version>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>
-            <groupId>com.itranswarp.summer</groupId>
-            <artifactId>summer-jdbc</artifactId>
-            <version>1.0.6</version>
+            <groupId>io.github.xucancould</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>
