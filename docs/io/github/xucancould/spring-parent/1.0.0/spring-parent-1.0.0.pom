@@ -1,0 +1,175 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.xucancould</groupId>
+  <artifactId>spring-parent</artifactId>
+  <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+  <name>Xu Spring Framework</name>
+  <description>Mini Spring Framework</description>
+  <url>http://maven.apache.org</url>
+
+  <modules>
+    <module>../spring-context</module>
+    <module>../spring-aop</module>
+    <module>../spring-jdbc</module>
+    <module>../spring-web</module>
+    <module>../spring-boot</module>
+  </modules>
+
+  <scm>
+    <url>https://github.com/XuCanCould/xuSpring/tree/main</url>
+    <connection>scm:git:git@github.com:XuCanCould/xuSpring.git</connection>
+    <developerConnection>scm:git:git@github.com:XuCanCould/xuSpring.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>XuCanCould</name>
+      <email>xucan@st.huas.edu.cn</email>
+      <organization>PixbitStudio</organization>
+      <organizationUrl></organizationUrl>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License v3.0</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
+
+    <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <project.version>1.0.0</project.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <java.version>17</java.version>
+
+    <bytebuddy.version>1.14.2</bytebuddy.version>
+    <freemarker.version>2.3.32</freemarker.version>
+    <hikaricp.version>5.0.1</hikaricp.version>
+    <jackson.version>2.14.2</jackson.version>
+    <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+    <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+    <junit.version>5.9.2</junit.version>
+    <logback.version>1.4.12</logback.version>
+    <slf4j.version>2.0.7</slf4j.version>
+    <snakeyaml.version>2.0</snakeyaml.version>
+    <sqlite.version>3.41.2.2</sqlite.version>
+    <tomcat.version>10.1.19</tomcat.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${bytebuddy.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta.annotation.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>${hikaricp.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.freemarker</groupId>
+        <artifactId>freemarker</artifactId>
+        <version>${freemarker.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-jasper</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.xerial</groupId>
+        <artifactId>sqlite-jdbc</artifactId>
+        <version>${sqlite.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <distributionManagement>
+    <repository>
+      <id>local-repo-release</id>
+      <name>GitHub Release</name>
+      <url>file://E:/workspace\XuSpring/maven-repo/</url>
+    </repository>
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId> <!-- 添加 groupId -->
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version> <!-- 推荐指定插件版本 -->
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+            <configuration>
+              <classifier>sources</classifier> <!-- 指定 classifier -->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- 其他插件配置可以放在这里 -->
+    </plugins>
+  </build>
+</project>
