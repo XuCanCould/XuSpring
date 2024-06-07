@@ -10,6 +10,14 @@
   <description>Mini Spring Framework</description>
   <url>http://maven.apache.org</url>
 
+  <modules>
+    <module>../spring-context</module>
+    <module>../spring-aop</module>
+    <module>../spring-jdbc</module>
+    <module>../spring-web</module>
+    <module>../spring-boot</module>
+  </modules>
+
   <scm>
     <url>https://github.com/XuCanCould/xuSpring/tree/main</url>
     <connection>scm:git:git@github.com:XuCanCould/xuSpring.git</connection>
@@ -134,59 +142,6 @@
     </dependencies>
   </dependencyManagement>
 
-<!--  <profiles>-->
-<!--    <profile>-->
-<!--      <id>sonatype</id>-->
-<!--      <build>-->
-<!--        <plugins>-->
-<!--          <plugin>-->
-<!--            <groupId>org.sonatype.plugins</groupId>-->
-<!--            <artifactId>nexus-staging-maven-plugin</artifactId>-->
-<!--            <version>1.6.12</version>-->
-<!--            <extensions>true</extensions>-->
-<!--            <configuration>-->
-<!--              <serverId>sonatype-snapshots</serverId>-->
-<!--              <nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
-<!--              <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-<!--            </configuration>-->
-<!--          </plugin>-->
-<!--          <plugin>-->
-<!--            <groupId>org.apache.maven.plugins</groupId>-->
-<!--            <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--            <version>3.4.1</version>-->
-<!--            <configuration>-->
-<!--              <failOnError>false</failOnError>-->
-<!--              <quiet>true</quiet>-->
-<!--            </configuration>-->
-<!--            <executions>-->
-<!--              <execution>-->
-<!--                <id>attach-javadocs</id>-->
-<!--                <goals>-->
-<!--                  <goal>jar</goal>-->
-<!--                </goals>-->
-<!--              </execution>-->
-<!--            </executions>-->
-<!--          </plugin>-->
-
-<!--          <plugin>-->
-<!--            <groupId>org.apache.maven.plugins</groupId>-->
-<!--            <artifactId>maven-gpg-plugin</artifactId>-->
-<!--            <version>1.6</version>-->
-<!--            <executions>-->
-<!--              <execution>-->
-<!--                <id>sign-artifacts</id>-->
-<!--                <phase>verify</phase>-->
-<!--                <goals>-->
-<!--                  <goal>sign</goal>-->
-<!--                </goals>-->
-<!--              </execution>-->
-<!--            </executions>-->
-<!--          </plugin>-->
-<!--        </plugins>-->
-<!--      </build>-->
-<!--    </profile>-->
-<!--  </profiles>-->
-
   <distributionManagement>
     <repository>
       <id>local-repo-release</id>
@@ -217,130 +172,4 @@
       <!-- 其他插件配置可以放在这里 -->
     </plugins>
   </build>
-<!--      <plugin>-->
-<!--        <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>attach-javadocs</id>-->
-<!--            <phase>package</phase>-->
-<!--            <goals>-->
-<!--              <goal>jar</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-<!--    </plugins>-->
-<!--  </build>-->
-<!--  <build>-->
-<!--    <pluginManagement>-->
-<!--      <plugins>-->
-<!--        <plugin>-->
-<!--          <groupId>org.apache.maven.plugins</groupId>-->
-<!--          <artifactId>maven-surefire-plugin</artifactId>-->
-<!--          <version>3.0.0</version>-->
-<!--        </plugin>-->
-
-<!--        <plugin>-->
-<!--          <groupId>org.apache.maven.plugins</groupId>-->
-<!--          <artifactId>maven-source-plugin</artifactId>-->
-<!--          <version>3.2.1</version>-->
-<!--          <executions>-->
-<!--            <execution>-->
-<!--              <id>attach-sources</id>-->
-<!--              <goals>-->
-<!--                <goal>jar-no-fork</goal>-->
-<!--              </goals>-->
-<!--            </execution>-->
-<!--          </executions>-->
-<!--        </plugin>-->
-
-<!--        <plugin>-->
-<!--          <groupId>org.apache.maven.plugins</groupId>-->
-<!--          <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--          <version>3.4.1</version>-->
-<!--          <executions>-->
-<!--            <execution>-->
-<!--              <id>attach-javadocs</id>-->
-<!--              <goals>-->
-<!--                <goal>jar</goal>-->
-<!--              </goals>-->
-<!--              <configuration>-->
-<!--                <doclint>none</doclint>-->
-<!--              </configuration>-->
-<!--            </execution>-->
-<!--          </executions>-->
-<!--        </plugin>-->
-
-<!--        <plugin>-->
-<!--          <groupId>org.apache.maven.plugins</groupId>-->
-<!--          <artifactId>maven-gpg-plugin</artifactId>-->
-<!--          <version>1.6</version>-->
-<!--          <executions>-->
-<!--            <execution>-->
-<!--              <id>sign-artifacts</id>-->
-<!--              <phase>verify</phase>-->
-<!--              <goals>-->
-<!--                <goal>sign</goal>-->
-<!--              </goals>-->
-<!--            </execution>-->
-<!--          </executions>-->
-<!--        </plugin>-->
-
-<!--        <plugin>-->
-<!--          <groupId>org.sonatype.plugins</groupId>-->
-<!--          <artifactId>nexus-staging-maven-plugin</artifactId>-->
-<!--          <version>1.6.12</version>-->
-<!--          <extensions>true</extensions>-->
-<!--          <configuration>-->
-<!--            <serverId>sonatype</serverId>-->
-<!--            <nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
-<!--            <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-<!--          </configuration>-->
-<!--        </plugin>-->
-<!--      </plugins>-->
-<!--    </pluginManagement>-->
-
-<!--    <plugins>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-surefire-plugin</artifactId>-->
-<!--      </plugin>-->
-
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-source-plugin</artifactId>-->
-<!--      </plugin>-->
-
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--      </plugin>-->
-
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-gpg-plugin</artifactId>-->
-<!--      </plugin>-->
-
-<!--      <plugin>-->
-<!--        <groupId>org.sonatype.plugins</groupId>-->
-<!--        <artifactId>nexus-staging-maven-plugin</artifactId>-->
-<!--      </plugin>-->
-<!--    </plugins>-->
-<!--  </build>-->
-
-    <!-- 项目构建产物的发布位置 -->
-<!--    <distributionManagement>-->
-<!--      &lt;!&ndash; maven 快照存储仓库 &ndash;&gt;-->
-<!--      <snapshotRepository>-->
-<!--        <id>sonatype-snapshots</id>-->
-<!--        <name>Nexus Snapshots Repository</name>-->
-<!--        <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-<!--      </snapshotRepository>-->
-<!--      &lt;!&ndash; 正式发布版本的存储仓库 &ndash;&gt;-->
-<!--      <repository>-->
-<!--        <id>sonatype-staging</id>-->
-<!--        <name>Nexus Release Repository</name>-->
-<!--        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-<!--      </repository>-->
-<!--    </distributionManagement>-->
 </project>
