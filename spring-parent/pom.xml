@@ -10,6 +10,14 @@
   <description>Mini Spring Framework</description>
   <url>http://maven.apache.org</url>
 
+  <modules>
+    <module>../spring-context</module>
+    <module>../spring-aop</module>
+    <module>../spring-jdbc</module>
+    <module>../spring-web</module>
+    <module>../spring-boot</module>
+  </modules>
+
   <scm>
     <url>https://github.com/XuCanCould/xuSpring/tree/main</url>
     <connection>scm:git:git@github.com:XuCanCould/xuSpring.git</connection>
