@@ -1,0 +1,58 @@
+name: Deploy Maven Artifacts
+
+on:
+  push:
+    branches:
+      - 'maven-deploy' # 假设我们有一个专门用于部署Maven工件的分支
+
+env:
+  GROUP_ID: "io.github.xucancould" # 设置groupId
+  ARTIFACT_ID: "spring-parent" # 设置artifactId
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build and Package Maven Artifacts
+        run: mvn clean deploy -DskipTests -Prelease -DaltDeploymentRepository=github::default::https://https://xucancould.github.io/xuSpring/maven-repo/ 
+
+      - name: Prepare Maven Repo Structure in Docs
+        run: |
+          mkdir -p docs/maven-repo/${{ env.GROUP_ID }}/${{ env.ARTIFACT_ID }}/ # 创建对应groupId和artifactId的目录结构
+          cp -R maven-repo/*.jar docs/maven-repo/${{ env.GROUP_ID }}/${{ env.ARTIFACT_ID }}/
+          cp -R maven-repo/*.pom docs/maven-repo/${{ env.GROUP_ID }}/${{ env.ARTIFACT_ID }}/
+
+      - name: Commit and Push Changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: GitHub Action
+          author_email: action@github.com
+          message: 'Automated deployment of Maven artifacts to GitHub Pages'
+          add: 'docs/maven-repo'
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ success() }}
+        with:
+          personal_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
