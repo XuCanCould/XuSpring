@@ -44,7 +44,7 @@ jobs:
       - name: Copy Artifacts to Docs
         run: |
           mkdir -p docs/maven-repo
-          cp -R target/* docs/maven-repo/
+          cp -R maven-repo/* docs/maven-repo/
             # 配置git用户信息，用于提交更改
       - name: Configure Git
         run: |
