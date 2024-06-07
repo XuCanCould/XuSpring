@@ -39,7 +39,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Build and Package Maven Artifacts
-        run: ./mvn clean package
+        run: mvn clean package
       - name: Copy Artifacts to Docs
         run: |
           mkdir -p docs/maven-repo
