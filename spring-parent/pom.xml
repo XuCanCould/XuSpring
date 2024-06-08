@@ -143,33 +143,82 @@
   </dependencyManagement>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>local-repo-release</id>
-      <name>GitHub Release</name>
-      <url>file://E:/workspace\XuSpring/maven-repo/</url>
+      <id>sonatype-staging</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
   </distributionManagement>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId> <!-- 添加 groupId -->
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version> <!-- 推荐指定插件版本 -->
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-            <configuration>
-              <classifier>sources</classifier> <!-- 指定 classifier -->
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- 其他插件配置可以放在这里 -->
-    </plugins>
-  </build>
+  <profiles>
+    <profile>
+      <id>sonatype</id>
+      <build>
+          <plugins>
+            <!--   central发布插件    -->
+            <plugin>
+              <groupId>org.sonatype.central</groupId>
+              <artifactId>central-publishing-maven-plugin</artifactId>
+              <version>0.4.0</version>
+              <extensions>true</extensions>
+              <configuration>
+                <publishingServerId>sonatype</publishingServerId>
+                <tokenAuth>true</tokenAuth>
+              </configuration>
+            </plugin>
+            <!--   source源码插件 -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-source-plugin</artifactId>
+              <version>2.2.1</version>
+              <executions>
+                <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <!--   javadoc插件 -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9.1</version>
+              <executions>
+                <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                    <goal>jar</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.5</version>
+              <configuration>
+                <executable>C:/Program Files (x86)/GnuPG/bin/gpg.exe</executable>
+                <keyname>io.github.xucancould</keyname>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
+          </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
