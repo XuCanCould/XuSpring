@@ -33,9 +33,6 @@ public class PropertyResolver {
 
         // debug 模式下打印
         if (logger.isDebugEnabled()) {
-//            properties.forEach((k, v) -> {
-//                logger.debug("{}:{}", k, v);
-//            });
             ArrayList<String> keys = new ArrayList<>(this.properties.keySet());
             Collections.sort(keys);
             for (String key : keys) {

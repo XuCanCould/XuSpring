@@ -48,7 +48,7 @@ public class WebUtils {
         final Properties properties = new Properties();
         // 尝试加载 yml 配置
         try {
-            Map<String, Object> ymlMap = YamlUtils.readYaml(CONFIG_APP_YAML);
+            Map<String, Object> ymlMap = YamlUtils.loadYamlAsPlainMap(CONFIG_APP_YAML);
             logger.info("load config: {}", CONFIG_APP_YAML);
             for (String key : ymlMap.keySet()) {
                 Object value = ymlMap.get(key);

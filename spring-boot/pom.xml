@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.github.xucancould</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <relativePath>../spring-parent/pom.xml</relativePath>
     </parent>
     <artifactId>spring-boot</artifactId>
@@ -13,13 +13,13 @@
         <dependency>
             <groupId>io.github.xucancould</groupId>
             <artifactId>spring-web</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.xucancould</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
 
         <dependency>

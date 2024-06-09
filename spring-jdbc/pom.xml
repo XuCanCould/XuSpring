@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.github.xucancould</groupId>
         <artifactId>spring-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <relativePath>../spring-parent/pom.xml</relativePath>
     </parent>
     <artifactId>spring-jdbc</artifactId>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>io.github.xucancould</groupId>
             <artifactId>spring-aop</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
 
         <dependency>
